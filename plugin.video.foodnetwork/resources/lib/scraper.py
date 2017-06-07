@@ -24,38 +24,57 @@ class myAddon(t1mAddon):
 
 
   def getAddonMenu(self,url,ilist):
-     html = self.getRequest('http://www.foodnetwork.com/videos/players/food-network-full-episodes.vc.html')
-     m = re.compile('<section class="multichannel-component">(.+?)</section', re.DOTALL).search(html)
-     a = re.compile('<a href="(.+?)".+?src="(.+?)".+?data-max="35">(.+?)<.+?</div', re.DOTALL).findall(html,m.start(1),m.end(1))
-     infoList={}
-     for url,fanart,name in a:
-       name=name.strip().replace(' Full Episodes','')
-       thumb  = self.addonIcon
-       fanart = fanart.replace('231x130.jpg','480x360.jpg')
-       ilist = self.addMenuItem(name,'GE', ilist, url, thumb, fanart, infoList, isFolder=True)
-     return(ilist)
+    html = self.getRequest('http://www.foodnetwork.com/videos/full-episodes/')
+    mediaBlocks = re.compile('<h4 class="m-MediaBlock__a-Headline">(.+?)</h4', re.DOTALL).findall(html)
+    linkRx = re.compile('<a href="(.+?)"')
+    textRx = re.compile('<span class="m-MediaBlock__a-HeadlineText".*?>(.+?)</span')
+
+    infoList={}
+    for mediablock in mediaBlocks:
+      #self.log("parse:"+str(mediablock))
+      if mediablock is None:
+        continue
+
+      linkMatch = linkRx.search(mediablock)
+      textMatch = textRx.search(mediablock)
+      if linkMatch is None or textMatch is None:
+        continue
+      name = textMatch.group(1)
+      url = linkMatch.group(1)
+      if "full-episodes" not in url:
+        continue
+      #self.log("getAddonMenu  name:"+str(name)+"  url:"+str(url))
+      thumb = self.addonIcon
+      fanart = None
+      ilist = self.addMenuItem(name,'GE', ilist, url, thumb, fanart, infoList, isFolder=True)
+    return(ilist)
 
 
   def getAddonEpisodes(self,url,ilist):
-        url = uqp(url)
-        html  = self.getRequest('http://www.foodnetwork.com%s' % url)
-        m  = re.compile('"channels".+?\[(.+?)\]\},', re.DOTALL).search(html)
-        a = json.loads(m.group(1))
-        for b in a['videos']:
-           url     = b['releaseUrl'].split('?',1)[0]+'?MBR=true&format=SMIL&manifest=m3u'
-           name    = b['title']
-           thumb   = b['thumbnailUrl16x9'].replace('126x71.jpg','480x360.jpg')
-           fanart  = thumb
-           infoList = {}
-           infoList['Duration']    = b['length']
-           infoList['Title']       = b['title']
-           infoList['Studio']      = STUDIO
-           infoList['Plot']        = b["description"]
-           infoList['TVShowTitle'] = b["showName"]
-           infoList['MPAA']        = 'TV-PG'
-           infoList['mediatype']   = 'episode'
-           ilist = self.addMenuItem(name,'GV', ilist, url, thumb, fanart, infoList, isFolder=False)
-        return(ilist)
+    html = self.getRequest(url)
+    videoJsonMatch = re.compile('"videos": \[(.+?)\]', re.DOTALL).search(html)
+    if videoJsonMatch is None:
+      self.log("No episode json blob")
+      return(ilist)
+
+    jsonStr = "{\"videos\":["+videoJsonMatch.group(1)+"]}"
+    self.log(jsonStr)
+    jobj = json.loads(jsonStr)
+    for b in jobj['videos']:
+       url     = b['releaseUrl']
+       name    = b['title']
+       thumb   = b['thumbnailUrl']
+       fanart  = thumb
+       infoList = {}
+       infoList['Duration']    = b['length']
+       infoList['Title']       = b['title']
+       infoList['Studio']      = STUDIO
+       infoList['Plot']        = b["description"]
+       infoList['TVShowTitle'] = b["showTitle"]
+       infoList['MPAA']        = 'TV-PG'
+       infoList['mediatype']   = 'episode'
+       ilist = self.addMenuItem(name,'GV', ilist, url, thumb, fanart, infoList, isFolder=False)
+    return(ilist)
 
 
   def getAddonVideo(self,url):

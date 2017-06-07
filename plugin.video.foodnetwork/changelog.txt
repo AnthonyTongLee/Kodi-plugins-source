@@ -1,2 +1,3 @@
+v3.0.4 ant
 V3.0.3 bumped t1mlib version
 V3.0.2 Cleaned up Isengard

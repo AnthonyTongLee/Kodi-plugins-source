@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.foodnetwork"
        name="Food Network"
-       version="3.0.3"
+       version="3.0.4"
        provider-name="t1m">
   <requires>
     <import addon="xbmc.python" version="2.20.0"/>
@@ -21,6 +21,6 @@
     <forum>http://forum.kodi.tv/showthread.php?tid=224195</forum>
     <website>www.foodnetwork.com</website>
     <email></email>
-    <source>https://github.com/learningit/Kodi-plugins-source/tree/master/plugin.video.foodnetwork</source>
+    <source>https://github.com/AnthonyTongLee/Kodi-plugins-source/tree/master/plugin.video.foodnetwork</source>
   </extension>
 </addon>
